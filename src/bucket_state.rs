@@ -12,11 +12,11 @@ pub struct BucketState {
 }
 
 impl BucketState {
-    pub fn new(key: &str, window: TimeWindow, limit: u32) -> Self {
+    pub fn new(key: &str, window: &TimeWindow, limit: u32) -> Self {
         Self {
             key: key.to_owned(),
             limit,
-            window,
+            window: window.clone(),
             count: 0,
             previous_state: Box::new(None)
         }
@@ -30,7 +30,7 @@ impl BucketState {
         &self.window
     }
 
-    pub fn next(&self, window: TimeWindow) -> Self {
+    fn next(&self, window: &TimeWindow) -> Self {
         let previous_state = Box::new(if window.is_next(&self.window) {
             Some(self.clone())
         } else {
@@ -40,30 +40,30 @@ impl BucketState {
         Self {
             key: self.key.clone(),
             limit: self.limit,
-            window,
+            window: window.clone(),
             count: 0,
             previous_state
         }
     }
 
     pub fn increment(&mut self, delta: u32, window: &TimeWindow) -> u32 {
-        if self.window == *window {
-            self.count += delta;
-            return self.count;
+        if self.window != *window && window.is_next(&self.window) {
+            if window.is_next(&self.window) {
+                let next = self.next(&window);
+                self.key = next.key;
+                self.limit = next.limit;
+                self.window = next.window;
+                self.count = next.count;
+                self.previous_state = next.previous_state; 
+            }
+
+            if !window.is_after_next(&self.window) {
+                self.previous_state = Box::new(None);
+            }
         }
 
-        if self.window.is_next(window) {
-            self.previous_state = Box::new(Some(self.clone()));
-            self.window = window.clone();
-            self.count = 0;
-        }
+        self.count += delta;
 
-        unimplemented!()
-        // check if window currently valid
-        // if not, 
-        //     mutate to next window
-        //     set count to delta
-        // else
-        //     increment count by delta 
+        self.count
     }
 }
