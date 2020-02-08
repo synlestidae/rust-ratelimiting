@@ -1,5 +1,5 @@
 [package]
-name = "ratelimit"
+name = "ratelimiting"
 version = "0.1.0"
 authors = ["Maté Antunovic <Mate_Antunovic@bnz.co.nz>"]
 edition = "2018"
