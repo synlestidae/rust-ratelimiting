@@ -65,8 +65,8 @@ fn bucket_is_rate_limited_by_sliding_window() {
     bucket_state.increment(10, &first_window);
     bucket_state.increment(5, &second_window);
 
-    assert!(bucket_state.is_rate_limited(start + window_duration + Duration::seconds(5), &SlidingWindowRateLimitStrategy{}));
-    assert!(!bucket_state.is_rate_limited(start + window_duration + Duration::seconds(31), &SlidingWindowRateLimitStrategy{}));
+    assert!(bucket_state.is_rate_limited(start + window_duration + Duration::seconds(5), &SlidingWindowRateLimitStrategy::new(10)));
+    assert!(!bucket_state.is_rate_limited(start + window_duration + Duration::seconds(31), &SlidingWindowRateLimitStrategy::new(10)));
 }
 
 #[test]
@@ -81,7 +81,7 @@ fn bucket_not_incremented_when_sliding_window_passes() {
     bucket_state.increment(1, &second_window);
     bucket_state.increment(1, &second_window);
 
-    assert!(!bucket_state.is_rate_limited(start + Duration::seconds(60 * 2), &SlidingWindowRateLimitStrategy{}));
+    assert!(!bucket_state.is_rate_limited(start + Duration::seconds(60 * 2), &SlidingWindowRateLimitStrategy::new(10)));
 }
 
 #[test]

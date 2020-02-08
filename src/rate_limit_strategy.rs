@@ -5,4 +5,6 @@ use chrono::offset::Utc;
 
 pub trait RateLimitStrategy {
     fn is_rate_limited(&self, instance: DateTime<Utc>, current: &BucketState, previous: &Option<BucketState>) -> bool;
+
+    fn limit(&self, key: &str) -> u32;
 }

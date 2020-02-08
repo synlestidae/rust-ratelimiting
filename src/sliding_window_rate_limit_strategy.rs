@@ -6,7 +6,17 @@ use chrono::DateTime;
 use chrono::offset::Utc;
 
 /// I'm from a Java background
-pub struct SlidingWindowRateLimitStrategy {}
+pub struct SlidingWindowRateLimitStrategy {
+    default_limit: u32
+}
+
+impl SlidingWindowRateLimitStrategy {
+    pub fn new(default_limit: u32) -> Self {
+        Self {
+            default_limit
+        }
+    }
+}
 
 impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
     fn is_rate_limited(&self, instance: DateTime<Utc>, current: &BucketState, previous: &Option<BucketState>) -> bool {
@@ -20,5 +30,9 @@ impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
         };
 
         current_value + slide_value >= current_limit
+    }
+
+    fn limit(&self, key: &str) -> u32 {
+        self.default_limit
     }
 }
