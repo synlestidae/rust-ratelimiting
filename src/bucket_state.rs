@@ -1,14 +1,15 @@
 use crate::time_window::TimeWindow;
 use std::time::Duration;
 use std::time::Instant;
+use crate::rate_limit_strategy::RateLimitStrategy;
 
 #[derive(Debug, Clone)]
 pub struct BucketState {
-    limit: u32,
-    key: String,
-    window: TimeWindow,
-    count: u32,
-    previous_state: Box<Option<BucketState>>
+    pub limit: u32,
+    pub key: String,
+    pub window: TimeWindow,
+    pub count: u32,
+    pub previous_state: Box<Option<BucketState>>
 }
 
 impl BucketState {
@@ -65,5 +66,9 @@ impl BucketState {
         self.count += delta;
 
         self.count
+    }
+
+    pub fn is_rate_limited<S: RateLimitStrategy>(&self, strat: &S) -> bool {
+        strat.is_rate_limited(self, &*self.previous_state)
     }
 }
