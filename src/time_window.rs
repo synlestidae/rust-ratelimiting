@@ -2,7 +2,6 @@ use std::cmp::{Eq, PartialEq};
 use chrono::Duration;
 use chrono::DateTime;
 use chrono::offset::Utc;
-use time::duration::Duration;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeWindow {
@@ -23,17 +22,19 @@ impl TimeWindow {
     }
 
     pub fn is_next(&self, other: &TimeWindow) -> bool {
-        self.start > other.start + other.length
+        self.start >= other.start + other.length
     }
 
     pub fn is_after_next(&self, other: &TimeWindow) -> bool {
         self.start + self.length >= other.start
     }
 
-    pub fn slide_ratio(&self, other: &TimeWindow) -> f64 {
-        let instance_milliseconds = f64::from(self.start.signed_duration_since(other.start).num_milliseconds() as u32);
+    pub fn slide_ratio(&self, other: &DateTime<Utc>) -> f64 {
+        let instance_milliseconds = f64::from(self.start.signed_duration_since(other.clone()).num_milliseconds() as u32);
         let window_milliseconds = f64::from(self.length.num_milliseconds() as u32);
 
-        instant_milliseconds / window_milliseconds
+        println!("slide ratio {} {}", instance_milliseconds, window_milliseconds);
+
+        instance_milliseconds / window_milliseconds
     }
 }

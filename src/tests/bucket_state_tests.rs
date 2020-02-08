@@ -3,6 +3,7 @@ use crate::time_window::TimeWindow;
 
 use chrono::Duration;
 use chrono::offset::Utc;
+use crate::sliding_window_rate_limit_strategy::SlidingWindowRateLimitStrategy;
 
 #[test]
 fn bucket_increments_by_1() {
@@ -51,6 +52,22 @@ fn bucket_incremented_resets_when_window_moves() {
     bucket_state.increment(10, &window);
 
     assert_eq!(bucket_state.get_count(), 10);
+}
+
+#[test]
+fn bucket_is_rate_limited_by_sliding_window() {
+    let start = Utc::now();
+    let window_duration = Duration::minutes(1);
+    let first_window = TimeWindow::new(start, window_duration);
+    let second_window = TimeWindow::new(start + window_duration, window_duration);
+    let mut bucket_state = BucketState::new("test", &first_window, 10);
+
+    bucket_state.increment(10, &first_window);
+    bucket_state.increment(5, &second_window);
+
+    assert!(bucket_state.is_rate_limited(start + window_duration + Duration::seconds(15), &SlidingWindowRateLimitStrategy{}));
+
+    assert_eq!(1, 2);
 }
 
 #[test]

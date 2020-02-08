@@ -2,6 +2,8 @@ use crate::time_window::TimeWindow;
 use std::time::Duration;
 use std::time::Instant;
 use crate::rate_limit_strategy::RateLimitStrategy;
+use chrono::offset::Utc;
+use chrono::DateTime;
 
 #[derive(Debug, Clone)]
 pub struct BucketState {
@@ -48,7 +50,9 @@ impl BucketState {
     }
 
     pub fn increment(&mut self, delta: u32, window: &TimeWindow) -> u32 {
+        println!("Next yeah? {}", window.is_next(&self.window));
         if self.window != *window && window.is_next(&self.window) {
+            println!("Increment yo");
             if window.is_next(&self.window) {
                 let next = self.next(&window);
                 self.key = next.key;
@@ -68,7 +72,7 @@ impl BucketState {
         self.count
     }
 
-    pub fn is_rate_limited<S: RateLimitStrategy>(&self, strat: &S) -> bool {
-        strat.is_rate_limited(self, &*self.previous_state)
+    pub fn is_rate_limited<S: RateLimitStrategy>(&self, instance: DateTime<Utc>, strat: &S) -> bool {
+        strat.is_rate_limited(instance, self, &*self.previous_state)
     }
 }
