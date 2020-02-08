@@ -30,10 +30,8 @@ impl TimeWindow {
     }
 
     pub fn slide_ratio(&self, other: &DateTime<Utc>) -> f64 {
-        let instance_milliseconds = f64::from(self.start.signed_duration_since(other.clone()).num_milliseconds() as u32);
-        let window_milliseconds = f64::from(self.length.num_milliseconds() as u32);
-
-        println!("slide ratio {} {}", instance_milliseconds, window_milliseconds);
+        let instance_milliseconds = f64::from(other.signed_duration_since(self.start.clone()).num_milliseconds() as i32);
+        let window_milliseconds = f64::from(self.length.num_milliseconds() as i32);
 
         instance_milliseconds / window_milliseconds
     }

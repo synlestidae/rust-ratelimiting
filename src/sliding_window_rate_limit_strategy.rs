@@ -12,14 +12,13 @@ impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
     fn is_rate_limited(&self, instance: DateTime<Utc>, current: &BucketState, previous: &Option<BucketState>) -> bool {
         let current_limit = f64::from(current.limit);
         let current_value = f64::from(current.count);
+        let slide_ratio = current.window.slide_ratio(&instance);
 
         let slide_value: f64 = match previous {
-            Some(ref previous) => current_limit * previous.window.slide_ratio(&instance),
+            Some(ref previous) => if slide_ratio < 1.0 { current_limit * (1.0 - slide_ratio) } else { 0.0 },
             None => 0.0
         };
 
-        println!("RateLimitStrategy: {} {}", current_value, slide_value);
-
-        current_value + slide_value > current_limit
+        current_value + slide_value >= current_limit
     }
 }

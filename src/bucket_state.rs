@@ -50,9 +50,7 @@ impl BucketState {
     }
 
     pub fn increment(&mut self, delta: u32, window: &TimeWindow) -> u32 {
-        println!("Next yeah? {}", window.is_next(&self.window));
         if self.window != *window && window.is_next(&self.window) {
-            println!("Increment yo");
             if window.is_next(&self.window) {
                 let next = self.next(&window);
                 self.key = next.key;
