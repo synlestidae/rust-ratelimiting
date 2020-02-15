@@ -30,6 +30,6 @@ impl UpdateAnchor {
     }
 
     pub fn is_done(&self) -> bool {
-        !self.is_failed && self.is_increment_sent && !self.read_global_value.is_none()
+        self.is_failed || self.is_increment_sent && !self.read_global_value.is_none()
     }
 }

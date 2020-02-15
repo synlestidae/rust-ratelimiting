@@ -17,12 +17,12 @@ impl UpdateLine {
         }
     }
 
-    pub fn read_global_succeeded(&self, value: u32) {
-        self.sender.send(UpdateMessage::ReadGlobalSucceeded(value));
-    }
-
     pub fn increment_global_succeeded(&self) {
         self.sender.send(UpdateMessage::IncrementGlobalSucceeded { update_package: self.update_package.clone() });
+    }
+
+    pub fn read_global_succeeded(&self, value: u32) {
+        self.sender.send(UpdateMessage::ReadGlobalSucceeded(value));
     }
 
     pub fn success(mut self) {

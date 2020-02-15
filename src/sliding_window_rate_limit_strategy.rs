@@ -21,7 +21,7 @@ impl SlidingWindowRateLimitStrategy {
 impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
     fn is_rate_limited(&self, instance: DateTime<Utc>, current: &BucketState, previous: &Option<BucketState>) -> bool {
         let current_limit = f64::from(current.limit);
-        let current_value = f64::from(current.count);
+        let current_value = f64::from(current.get_count());
         let slide_ratio = current.window.slide_ratio(&instance);
 
         let slide_value: f64 = match previous {
