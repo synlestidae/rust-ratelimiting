@@ -29,7 +29,6 @@ impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
             None => 0.0
         };
 
-        println!("Rate limit? {} + {} >= {} == {}", current_value, slide_value, current_limit, current_value + slide_value >= current_limit);
         current_value + slide_value >= current_limit
     }
 

@@ -57,7 +57,6 @@ impl UpdateTracker {
         if self.state.is_busy() {
             false
         } else {
-            println!("needs update? {} / {} >= {}", bucket_state.get_count(), self.global_update_count, self.global_update_threshold);
              bucket_state.get_count() / self.global_update_count >= self.global_update_threshold
         }
     }
@@ -65,8 +64,6 @@ impl UpdateTracker {
     pub fn prep_update(&mut self, bucket_state: &mut BucketState) -> UpdateLine {
         // prep the update package
         let increment = bucket_state.clear_local_count();
-
-        println!("Increment: {}", increment);
 
         let update_package = UpdatePackage::new(&bucket_state.key, &bucket_state.window, increment);
 
