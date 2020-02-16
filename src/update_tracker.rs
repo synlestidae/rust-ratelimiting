@@ -55,24 +55,20 @@ impl UpdateTracker {
 
     pub fn needs_update(&self, bucket_state: &BucketState) -> bool {
         if self.state.is_busy() {
-            //println!("needs_update == busy");
             false
         } else {
-            /*println!("needs_update == {} / {} >= {} == {}", 
-                 bucket_state.count,
-                 self.global_update_threshold,
-                 self.global_update_count,
-                 bucket_state.get_count / self.global_update_count >=  self.global_update_threshold 
-             );*/
+            println!("needs update? {} / {} >= {}", bucket_state.get_count(), self.global_update_count, self.global_update_threshold);
              bucket_state.get_count() / self.global_update_count >= self.global_update_threshold
         }
     }
 
     pub fn prep_update(&mut self, bucket_state: &mut BucketState) -> UpdateLine {
         // prep the update package
-        let update_package = UpdatePackage::new(&bucket_state.key, &bucket_state.window, bucket_state.local_count);
+        let increment = bucket_state.clear_local_count();
 
-        bucket_state.clear_local_count();
+        println!("Increment: {}", increment);
+
+        let update_package = UpdatePackage::new(&bucket_state.key, &bucket_state.window, increment);
 
         // create the channel between UpdateAnchor and UpdateLine
         let (send, recv) = channel();

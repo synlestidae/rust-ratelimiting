@@ -47,8 +47,8 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
 
         let update_line_option = if let Some(ref mut dist_bucket_write_guard) = self.buckets.get_mut(key) {
             if let Some((last_global_value, current_global_value)) = dist_bucket_write_guard.update_tracker.refresh() {
+                println!("Global count! {}", current_global_value);
                 dist_bucket_write_guard.bucket_state.set_global_count(current_global_value);
-                //dist_bucket_write_guard.bucket_state.increment(current_global_value - last_global_value, window);
             };
             let needs_update = { 
                 dist_bucket_write_guard.update_tracker.needs_update(&dist_bucket_write_guard.bucket_state)
@@ -74,6 +74,7 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
         if let Some(mut update_line) = update_line_option {
             // cool! let's connect to redis, and use the update line to notify our progress
             let new_val = Self::global_increment(&self.redis_uri, &mut update_line).unwrap();
+            println!("NEW VAL: {}", new_val);
             update_line.increment_global_succeeded();
             update_line.read_global_succeeded(new_val);
         }

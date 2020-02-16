@@ -25,10 +25,11 @@ impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
         let slide_ratio = current.window.slide_ratio(&instance);
 
         let slide_value: f64 = match previous {
-            Some(ref previous) => if slide_ratio < 1.0 { current_limit * (1.0 - slide_ratio) } else { 0.0 },
+            Some(ref previous) => if slide_ratio < 1.0 { f64::from(previous.get_count()) * (1.0 - slide_ratio) } else { 0.0 },
             None => 0.0
         };
 
+        println!("Rate limit? {} + {} >= {} == {}", current_value, slide_value, current_limit, current_value + slide_value >= current_limit);
         current_value + slide_value >= current_limit
     }
 

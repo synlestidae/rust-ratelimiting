@@ -13,15 +13,15 @@ pub fn increments_value_in_rediss() {
 
     for i in 0..6 {
         thread_things.push(spawn(|| {
-            let mut store = DistRateLimitStore::new("redis://127.0.0.1/", SlidingWindowRateLimitStrategy::new(36000));
+            let mut store = DistRateLimitStore::new("redis://127.0.0.1/", SlidingWindowRateLimitStrategy::new(300));
 
             for i in 0..300 {
-                let one_milli = std_time::Duration::from_millis(10);
+                let one_milli = std_time::Duration::from_millis(1);
 
                 thread::sleep(one_milli);
 
-                if true || !store.is_rate_limited("test", &TimeWindow::from(Utc::now(), Duration::minutes(5)), &Utc::now()) {
-                    store.increment("test", &TimeWindow::from(Utc::now(), Duration::minutes(5)), 20);
+                if !store.is_rate_limited("test", &TimeWindow::from(Utc::now(), Duration::minutes(5)), &Utc::now()) {
+                    store.increment("test", &TimeWindow::from(Utc::now(), Duration::minutes(5)), 1);
                 }
 
             }
