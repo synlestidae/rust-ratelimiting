@@ -24,7 +24,6 @@ pub fn increments_value_in_rediss() {
                     store.increment("test", &TimeWindow::from(Utc::now(), Duration::minutes(5)), 1);
                 } else {
                 }
-
             }
         }));
     }

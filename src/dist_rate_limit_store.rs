@@ -4,12 +4,12 @@ use chrono::offset::Utc;
 use crate::bucket_state::BucketState;
 use crate::rate_limit_strategy::RateLimitStrategy;
 use crate::time_window::TimeWindow;
-use redis::Client;
-use std::borrow::Borrow;
+use crate::update_state::UpdateState;
 use crate::update_tracker::UpdateTracker;
-use crate::update_line::UpdateLine;
-use redis::RedisError;
+use redis::Client;
 use redis::IntoConnectionInfo;
+use redis::RedisError;
+use std::borrow::Borrow;
 
 pub struct DistRateLimitStore<S: RateLimitStrategy> {
     buckets: CHashMap<String, DistBucketState>,
@@ -45,8 +45,8 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
 
         self.buckets.upsert(key.to_owned(), || new_dist_bucket_state, |bucket| { bucket.bucket_state.increment(change, window); } );
 
-        let update_line_option = if let Some(ref mut dist_bucket_write_guard) = self.buckets.get_mut(key) {
-            if let Some((last_global_value, current_global_value)) = dist_bucket_write_guard.update_tracker.refresh() {
+        let update_state_option = if let Some(ref mut dist_bucket_write_guard) = self.buckets.get_mut(key) {
+            if let Some(current_global_value) = dist_bucket_write_guard.update_tracker.refresh() {
                 dist_bucket_write_guard.bucket_state.set_global_count(current_global_value);
             };
             let needs_update = { 
@@ -69,25 +69,27 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
         };
 
         // exclusive zone ends
-
-        if let Some(mut update_line) = update_line_option {
-            // cool! let's connect to redis, and use the update line to notify our progress
-            let new_val = Self::global_increment(&self.redis_uri, &mut update_line).unwrap();
-            update_line.increment_global_succeeded();
-            update_line.read_global_succeeded(new_val);
+        if let Some(mut update_state) = update_state_option {
+            let new_val = Self::global_increment(&self.redis_uri, &mut update_state).unwrap();
+            update_state.read_success(new_val);
         }
     }
 
-    fn global_increment(redis_uri: &str, update_line: &mut UpdateLine) -> Result<u32, RedisError> {
+    fn global_increment(redis_uri: &str, update_state: &mut UpdateState) -> Result<u32, RedisError> {
         let mut connection = Client::open(redis_uri)?;
 
+        let key = match update_state.key() {
+            Some(k) => k,
+            None => return Ok(0) // TODO BAD BAD BAD BAD BAD
+        };
+
         let increment_command = redis::cmd("INCRBY")
-            .arg(&update_line.update_package.key)
-            .arg(&update_line.update_package.global_increment.to_string())
+            .arg(&key)
+            .arg(&update_state.global_increment().to_string())
             .query(&mut connection)?;
 
         redis::cmd("GET")
-            .arg(&update_line.update_package.key)
+            .arg(&key)
             .query::<u32>(&mut connection)
     }
 }
