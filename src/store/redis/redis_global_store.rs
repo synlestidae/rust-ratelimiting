@@ -1,5 +1,5 @@
 use crate::store::GlobalStore;
 
 pub struct RedisGlobalStore {
-    redis_uri: 
+    redis_uri: String
 }

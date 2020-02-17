@@ -1,7 +1,7 @@
-use crate::time_window::TimeWindow;
+use crate::time::TimeWindow;
 use std::time::Duration;
 use std::time::Instant;
-use crate::rate_limit_strategy::RateLimitStrategy;
+use crate::ratelimiting::RateLimitStrategy;
 use chrono::offset::Utc;
 use chrono::DateTime;
 

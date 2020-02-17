@@ -1,9 +1,9 @@
-use crate::bucket_state::BucketState;
-use crate::rate_limit_strategy::RateLimitStrategy;
-use chrono::Duration;
-use crate::time_window::TimeWindow;
 use chrono::DateTime;
+use chrono::Duration;
 use chrono::offset::Utc;
+use crate::bucket::BucketState;
+use crate::ratelimiting::RateLimitStrategy;
+use crate::time::TimeWindow;
 
 #[derive(Clone)]
 pub struct SlidingWindowRateLimitStrategy {
@@ -36,9 +36,9 @@ impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
         current_value + slide_value >= current_limit
     }
 
-    fn update_threshold_hint(&self, instance: DateTime<Utc>, bucket: &BucketState) -> Option<u32> {
-        Some(self.approx_node_count)
-    }
+    //fn update_threshold_hint(&self, instance: DateTime<Utc>, bucket: &BucketState) -> Option<u32> {
+    //    Some(self.approx_node_count)
+    //}
 
     fn limit(&self, key: &str) -> u32 {
         self.default_limit

@@ -1,10 +1,10 @@
 use chashmap::CHashMap;
-use crate::bucket_state::BucketState;
-use crate::time_window::TimeWindow;
-use std::borrow::Borrow;
-use crate::rate_limit_strategy::RateLimitStrategy;
 use chrono::DateTime;
 use chrono::offset::Utc;
+use crate::bucket::BucketState;
+use crate::ratelimiting::RateLimitStrategy;
+use crate::time::TimeWindow;
+use std::borrow::Borrow;
 
 #[derive(Clone)]
 pub struct RateLimitStore<S: RateLimitStrategy> {

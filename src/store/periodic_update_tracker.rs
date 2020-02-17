@@ -1,5 +1,5 @@
-use crate::bucket_state::BucketState;
-use crate::update_state::UpdateState;
+use crate::bucket::BucketState;
+use crate::store::UpdateState;
 use std::sync::mpsc::channel;
 
 pub struct PeriodUpdateTracker {
@@ -9,7 +9,7 @@ pub struct PeriodUpdateTracker {
     desired_total_updates: u32,
 }
 
-impl PeriodicUpdateTracker {
+impl PeriodUpdateTracker {
     pub fn new(global_value: u32, desired_total_updates: u32) -> Self {
         Self {
             state: None,
@@ -21,7 +21,6 @@ impl PeriodicUpdateTracker {
     }
 
     pub fn refresh(&mut self) -> Option<u32> {
-        println!("Refresh: {:?}", self.state);
         if let Some(ref mut state) = &mut self.state {
             if state.is_failed() {
                 // do nothing
@@ -49,7 +48,6 @@ impl PeriodicUpdateTracker {
     }
 
     pub fn prep_update(&mut self, bucket_state: &mut BucketState) -> UpdateState {
-        println!("Prepping an update: {:?}", self.state);
         // prep the update package
         let increment = bucket_state.clear_local_count();
 

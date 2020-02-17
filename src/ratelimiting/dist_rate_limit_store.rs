@@ -1,11 +1,11 @@
 use chashmap::CHashMap;
 use chrono::DateTime;
 use chrono::offset::Utc;
-use crate::bucket_state::BucketState;
-use crate::rate_limit_strategy::RateLimitStrategy;
-use crate::time_window::TimeWindow;
-use crate::update_state::UpdateState;
-use crate::update_tracker::UpdateTracker;
+use crate::bucket::BucketState;
+use crate::ratelimiting::RateLimitStrategy;
+use crate::time::TimeWindow;
+use crate::store::UpdateState;
+use crate::store::UpdateTracker;
 use redis::Client;
 use redis::IntoConnectionInfo;
 use redis::RedisError;

@@ -1,7 +1,7 @@
-use std::err:Error;
+use std::error::Error;
 
 pub struct StoreError {
-    pub error: Box<Error>
+    pub error: Box<dyn Error>
 }
 
 impl<E: Error> From<E> for StoreError {
@@ -11,9 +11,3 @@ impl<E: Error> From<E> for StoreError {
         }
     }
 }
-
-impl StoreError {
-    pub fn from<E: Error>(err: 
-}
-
-

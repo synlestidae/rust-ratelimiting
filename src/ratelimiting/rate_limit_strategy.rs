@@ -1,5 +1,5 @@
-use crate::bucket_state::BucketState;
-use crate::time_window::TimeWindow;
+use crate::bucket::BucketState;
+use crate::time::TimeWindow;
 use chrono::DateTime;
 use chrono::offset::Utc;
 

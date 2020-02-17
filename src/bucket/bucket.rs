@@ -1,3 +1,5 @@
+use crate::time::TimeWindow;
+
 pub trait Bucket {
     fn get_count(&self) -> u32;
 
