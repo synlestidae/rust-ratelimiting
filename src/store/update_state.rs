@@ -2,7 +2,7 @@ use std::sync::Mutex;
 use std::sync::Arc;
 use std::ops::Drop;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct UpdateState {
     state: Arc<Mutex<InnerState>>
 }
@@ -77,6 +77,7 @@ impl Drop for UpdateState {
     }
 }
 
+#[derive(Clone, Debug)]
 struct InnerState {
     global_increment: u32,
     key: String,

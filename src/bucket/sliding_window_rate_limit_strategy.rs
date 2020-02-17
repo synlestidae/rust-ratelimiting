@@ -5,15 +5,17 @@ use crate::time_window::TimeWindow;
 use chrono::DateTime;
 use chrono::offset::Utc;
 
-/// I'm from a Java background
+#[derive(Clone)]
 pub struct SlidingWindowRateLimitStrategy {
-    default_limit: u32
+    default_limit: u32,
+    approx_node_count: u32
 }
 
 impl SlidingWindowRateLimitStrategy {
-    pub fn new(default_limit: u32) -> Self {
+    pub fn new(default_limit: u32, approx_node_count: u32) -> Self {
         Self {
-            default_limit
+            default_limit,
+            approx_node_count
         }
     }
 }
@@ -29,7 +31,13 @@ impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
             None => 0.0
         };
 
+        println!("rate limit = {} + {} >= {}", current_value, slide_value, current_limit);
+
         current_value + slide_value >= current_limit
+    }
+
+    fn update_threshold_hint(&self, instance: DateTime<Utc>, bucket: &BucketState) -> Option<u32> {
+        Some(self.approx_node_count)
     }
 
     fn limit(&self, key: &str) -> u32 {

@@ -2,25 +2,26 @@ use crate::bucket_state::BucketState;
 use crate::update_state::UpdateState;
 use std::sync::mpsc::channel;
 
-pub struct UpdateTracker {
+pub struct PeriodUpdateTracker {
     state: Option<UpdateState>,
     global_value: u32,
     global_update_count: u32,
-    global_update_threshold: u32
+    desired_total_updates: u32,
 }
 
-impl UpdateTracker {
-    pub fn new(global_value: u32, global_update_threshold: u32) -> Self {
+impl PeriodicUpdateTracker {
+    pub fn new(global_value: u32, desired_total_updates: u32) -> Self {
         Self {
             state: None,
             global_value: 0,
             global_update_count: 1,
-            global_update_threshold
+            desired_total_updates
 
         }
     }
 
     pub fn refresh(&mut self) -> Option<u32> {
+        println!("Refresh: {:?}", self.state);
         if let Some(ref mut state) = &mut self.state {
             if state.is_failed() {
                 // do nothing
@@ -43,11 +44,12 @@ impl UpdateTracker {
         if self.state.is_some() {
             false
         } else {
-             bucket_state.get_count() / self.global_update_count >= self.global_update_threshold
+            bucket_state.get_count() / self.global_update_count >= self.desired_total_updates
         }
     }
 
     pub fn prep_update(&mut self, bucket_state: &mut BucketState) -> UpdateState {
+        println!("Prepping an update: {:?}", self.state);
         // prep the update package
         let increment = bucket_state.clear_local_count();
 

@@ -51,7 +51,7 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
                 dist_bucket_write_guard.bucket_state.set_global_count(current_global_value);
             };
             let needs_update = { 
-                dist_bucket_write_guard.update_tracker.needs_update(&dist_bucket_write_guard.bucket_state) || 
+                dist_bucket_write_guard.update_tracker.needs_update(&dist_bucket_write_guard.bucket_state)
             };
 
             let mut bucket_state = dist_bucket_write_guard.bucket_state.clone();
