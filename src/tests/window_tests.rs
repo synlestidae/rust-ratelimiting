@@ -1,4 +1,4 @@
-use crate::time_window::TimeWindow;
+use crate::time::TimeWindow;
 use chrono::Duration;
 use chrono::{NaiveDate, DateTime, TimeZone, NaiveDateTime, Utc};
 

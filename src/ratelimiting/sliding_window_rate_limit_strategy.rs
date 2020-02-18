@@ -22,7 +22,10 @@ impl SlidingWindowRateLimitStrategy {
 
 impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
     fn is_rate_limited(&self, instance: DateTime<Utc>, current: &BucketState, previous: &Option<BucketState>) -> bool {
-        let current_limit = f64::from(current.limit);
+        self.get_count(instance, current, previous) >= current.limit
+    }
+
+    fn get_count(&self, instance: DateTime<Utc>, current: &BucketState, previous: &Option<BucketState>) -> u32 {
         let current_value = f64::from(current.get_count());
         let slide_ratio = current.window.slide_ratio(&instance);
 
@@ -31,14 +34,8 @@ impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
             None => 0.0
         };
 
-        println!("rate limit = {} + {} >= {}", current_value, slide_value, current_limit);
-
-        current_value + slide_value >= current_limit
+        (current_value + slide_value).floor() as u32
     }
-
-    //fn update_threshold_hint(&self, instance: DateTime<Utc>, bucket: &BucketState) -> Option<u32> {
-    //    Some(self.approx_node_count)
-    //}
 
     fn limit(&self, key: &str) -> u32 {
         self.default_limit

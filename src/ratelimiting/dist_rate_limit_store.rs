@@ -4,8 +4,9 @@ use chrono::offset::Utc;
 use crate::bucket::BucketState;
 use crate::ratelimiting::RateLimitStrategy;
 use crate::time::TimeWindow;
-use crate::store::UpdateState;
-use crate::store::UpdateTracker;
+use crate::periodic::UpdateState;
+use crate::periodic::UpdateTracker;
+use crate::periodic::PeriodicUpdateTracker;
 use redis::Client;
 use redis::IntoConnectionInfo;
 use redis::RedisError;
@@ -36,10 +37,12 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
     pub fn increment(&mut self, key: &str, window: &TimeWindow, change: u32) {
         println!("Begin increment");
         let mut bucket_state = BucketState::new(key, window, self.rate_limit_strategy.limit(key));
+        let update_tracker = UpdateTracker::from(&bucket_state);
         bucket_state.increment(change, window);
+
         let new_dist_bucket_state = DistBucketState {
             bucket_state,
-            update_tracker: UpdateTracker::new(0, self.rate_limit_strategy.limit(key) / 20)
+            update_tracker
         };
 
         // exclusive zone begins here
@@ -47,8 +50,8 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
         self.buckets.upsert(key.to_owned(), || new_dist_bucket_state, |bucket| { bucket.bucket_state.increment(change, window); } );
 
         let update_state_option = if let Some(ref mut dist_bucket_write_guard) = self.buckets.get_mut(key) {
-            if let Some(current_global_value) = dist_bucket_write_guard.update_tracker.refresh() {
-                dist_bucket_write_guard.bucket_state.set_global_count(current_global_value);
+            if let Some(current) = dist_bucket_write_guard.update_tracker.poll_update() {
+                dist_bucket_write_guard.bucket_state.set_global_count(current.global_value);
             };
             let needs_update = { 
                 dist_bucket_write_guard.update_tracker.needs_update(&dist_bucket_write_guard.bucket_state)
@@ -57,7 +60,7 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
             let mut bucket_state = dist_bucket_write_guard.bucket_state.clone();
 
             let dbwgo = if needs_update {
-                Some(dist_bucket_write_guard.update_tracker.prep_update(&mut bucket_state))
+                Some(dist_bucket_write_guard.update_tracker.build_update(&mut bucket_state))
             } else {
                 None
             };
@@ -101,5 +104,5 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
 
 struct DistBucketState {
     bucket_state: BucketState,
-    update_tracker: UpdateTracker
+    update_tracker: PeriodicUpdateTracker
 }
