@@ -28,7 +28,6 @@ impl BucketState {
     }
 
     pub fn get_count(&self) -> u32 {
-        println!("Le counts {} + {}", self.global_count, self.local_count);
         self.global_count + self.local_count
     }
 

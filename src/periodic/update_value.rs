@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct UpdateValue {
     pub key: String,
     pub global_value: u32

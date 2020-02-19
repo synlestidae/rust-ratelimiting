@@ -2,24 +2,27 @@ use chashmap::CHashMap;
 use chrono::DateTime;
 use chrono::offset::Utc;
 use crate::bucket::BucketState;
+use crate::periodic::PeriodicUpdateTracker;
+use crate::periodic::UpdateStrategy;
+use crate::periodic::PeriodicUpdateStrategy;
+use crate::periodic::UpdateState;
+use crate::periodic::UpdateValue;
+use crate::periodic::UpdateTracker;
 use crate::ratelimiting::RateLimitStrategy;
 use crate::time::TimeWindow;
-use crate::periodic::UpdateState;
-use crate::periodic::UpdateTracker;
-use crate::periodic::PeriodicUpdateTracker;
 use redis::Client;
 use redis::IntoConnectionInfo;
 use redis::RedisError;
 use std::borrow::Borrow;
 
-pub struct DistRateLimitStore<S: RateLimitStrategy> {
-    buckets: CHashMap<String, DistBucketState>,
-    rate_limit_strategy: S,
+pub struct DistRateLimitStore<R: RateLimitStrategy, T: UpdateTracker, S: UpdateStrategy> {
+    buckets: CHashMap<String, DistBucketState<T, S>>,
+    rate_limit_strategy: R,
     redis_uri: String
 }
 
-impl<S: RateLimitStrategy> DistRateLimitStore<S> {
-    pub fn new(redis_uri: &str, rate_limit_strategy: S) -> Self {
+impl<R: RateLimitStrategy, T: UpdateTracker, S: UpdateStrategy> DistRateLimitStore<R, T, S> {
+    pub fn new(redis_uri: &str, rate_limit_strategy: R) -> Self {
         Self {
             buckets: CHashMap::new(),
             rate_limit_strategy,
@@ -35,14 +38,16 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
     }
 
     pub fn increment(&mut self, key: &str, window: &TimeWindow, change: u32) {
-        println!("Begin increment");
         let mut bucket_state = BucketState::new(key, window, self.rate_limit_strategy.limit(key));
-        let update_tracker = UpdateTracker::from(&bucket_state);
+        let update_tracker = T::from(&bucket_state);
+        let update_strategy = S::from(&bucket_state);
         bucket_state.increment(change, window);
 
         let new_dist_bucket_state = DistBucketState {
             bucket_state,
-            update_tracker
+            update_tracker,
+            update_strategy,
+            state: None
         };
 
         // exclusive zone begins here
@@ -50,11 +55,13 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
         self.buckets.upsert(key.to_owned(), || new_dist_bucket_state, |bucket| { bucket.bucket_state.increment(change, window); } );
 
         let update_state_option = if let Some(ref mut dist_bucket_write_guard) = self.buckets.get_mut(key) {
-            if let Some(current) = dist_bucket_write_guard.update_tracker.poll_update() {
+            if let Some(current) = dist_bucket_write_guard.poll_update() {
                 dist_bucket_write_guard.bucket_state.set_global_count(current.global_value);
             };
-            let needs_update = { 
-                dist_bucket_write_guard.update_tracker.needs_update(&dist_bucket_write_guard.bucket_state)
+            let needs_update = !dist_bucket_write_guard.state.is_some() && { 
+                let bucket = dist_bucket_write_guard.bucket_state.clone();
+                let strategy = &mut dist_bucket_write_guard.update_strategy;
+                strategy.needs_update(&bucket)
             };
 
             let mut bucket_state = dist_bucket_write_guard.bucket_state.clone();
@@ -65,6 +72,8 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
                 None
             };
 
+            dist_bucket_write_guard.state = dbwgo.clone();
+
             drop(dist_bucket_write_guard);
 
             dbwgo
@@ -74,13 +83,10 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
 
         // exclusive zone ends
         if let Some(mut update_state) = update_state_option {
-            println!("update_state: {:?}", update_state);
             let new_val = Self::global_increment(&self.redis_uri, &mut update_state).unwrap();
-            update_state.read_success(new_val);
-            println!("All done!");
-        }
 
-        println!("Finish increment");
+            update_state.read_success(new_val);
+        }
     }
 
     fn global_increment(redis_uri: &str, update_state: &mut UpdateState) -> Result<u32, RedisError> {
@@ -102,7 +108,31 @@ impl<S: RateLimitStrategy> DistRateLimitStore<S> {
     }
 }
 
-struct DistBucketState {
+struct DistBucketState<U: UpdateTracker, S: UpdateStrategy> {
     bucket_state: BucketState,
-    update_tracker: PeriodicUpdateTracker
+    update_tracker: U,
+    update_strategy: S,
+    state: Option<UpdateState>
 }
+
+impl<U: UpdateTracker, S: UpdateStrategy> DistBucketState<U, S> {
+    fn poll_update(&mut self) -> Option<UpdateValue> {
+        let mut is_done = false;
+        let mut return_value: Option<u32> = None;
+
+        if let Some(ref mut s) = &mut self.state {
+            is_done = s.is_done();
+
+            if is_done && !s.is_failed() {
+                return_value = Some(s.global_value());
+            }
+        }
+
+        if is_done {
+            self.state = None;
+        }
+
+        return_value.map(|v| UpdateValue::new(&self.bucket_state.key, v))
+    }
+}
+
