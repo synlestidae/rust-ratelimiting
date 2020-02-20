@@ -38,27 +38,31 @@ impl<R: RateLimitStrategy, T: UpdateTracker, S: UpdateStrategy> DistRateLimitSto
     }
 
     pub fn increment(&mut self, key: &str, window: &TimeWindow, change: u32) {
-        let mut bucket_state = BucketState::new(key, window, self.rate_limit_strategy.limit(key));
-        let update_tracker = T::from(&bucket_state);
-        let update_strategy = S::from(&bucket_state);
-        bucket_state.increment(change, window);
-
-        let new_dist_bucket_state = DistBucketState {
-            bucket_state,
-            update_tracker,
-            update_strategy,
-            state: None
-        };
-
+        let key_copy = key.to_owned();
+        let window_copy = window.to_owned();
+        let limit = self.rate_limit_strategy.limit(key);
         // exclusive zone begins here
 
-        self.buckets.upsert(key.to_owned(), || new_dist_bucket_state, |bucket| { bucket.bucket_state.increment(change, window); } );
+        self.buckets.upsert(key.to_owned(), move || {
+            let mut bucket_state = BucketState::new(&key_copy, &window_copy, limit);
+            let update_tracker = T::from(&bucket_state);
+            let update_strategy = S::from(&bucket_state);
+            bucket_state.increment(change, window);
+
+            DistBucketState {
+                bucket_state,
+                update_tracker,
+                update_strategy,
+                state: None
+            }
+        
+        }, |bucket| { bucket.bucket_state.increment(change, window); } );
 
         let update_state_option = if let Some(ref mut dist_bucket_write_guard) = self.buckets.get_mut(key) {
             if let Some(current) = dist_bucket_write_guard.poll_update() {
                 dist_bucket_write_guard.bucket_state.set_global_count(current.global_value);
             };
-            let needs_update = !dist_bucket_write_guard.state.is_some() && { 
+            let needs_update = { 
                 let bucket = dist_bucket_write_guard.bucket_state.clone();
                 let strategy = &mut dist_bucket_write_guard.update_strategy;
                 strategy.needs_update(&bucket)

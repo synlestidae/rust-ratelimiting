@@ -82,7 +82,9 @@ impl BucketState {
     }
 
     pub fn set_global_count(&mut self, global_count: u32) {
-        self.global_count = global_count;
+        if global_count > self.global_count {
+            self.global_count = global_count;
+        }
     }
 
     pub fn is_rate_limited<S: RateLimitStrategy>(&self, instance: DateTime<Utc>, strat: &S) -> bool {
