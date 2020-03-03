@@ -4,14 +4,12 @@ use crate::periodic::UpdateTracker;
 
 pub struct PeriodicUpdateTracker {
     state: Option<UpdateState>,
-    key: String,
 }
 
 impl UpdateTracker for PeriodicUpdateTracker {
-    fn from(bucket: &BucketState) -> Self {
+    fn from(_bucket: &BucketState) -> Self {
         Self {
             state: None as Option<UpdateState>,
-            key: bucket.key.to_owned(),
         }
     }
 

@@ -19,7 +19,7 @@ impl<S: RateLimitStrategy> RateLimitStore<S> {
         }
     }
 
-    pub fn is_rate_limited(&self, key: &str, window: &TimeWindow, instance: &DateTime<Utc>) -> bool {
+    pub fn is_rate_limited(&self, key: &str, _window: &TimeWindow, instance: &DateTime<Utc>) -> bool {
         match self.buckets.get(key) {
             Some(ref bucket) => bucket.is_rate_limited(instance.clone(), &self.rate_limit_strategy),
             None => false

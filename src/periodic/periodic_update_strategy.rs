@@ -7,7 +7,7 @@ pub struct PeriodicUpdateStrategy {
 }
 
 impl UpdateStrategy for PeriodicUpdateStrategy {
-    fn from(bucket: &BucketState) -> Self {
+    fn from(_: &BucketState) -> Self {
         Self {
             global_update_count: 1,
             desired_total_updates: DEFAULT_DESIRED_TOTAL_UPDATES + 1

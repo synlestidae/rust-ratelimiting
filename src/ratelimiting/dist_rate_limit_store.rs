@@ -2,11 +2,8 @@ use chashmap::CHashMap;
 use chrono::DateTime;
 use chrono::offset::Utc;
 use crate::periodic::UpdateStrategy;
-use crate::periodic::UpdateState;
 use crate::periodic::UpdateTracker;
 use crate::time::TimeWindow;
-use redis::Client;
-use redis::RedisError;
 use crate::store::GlobalStore;
 use crate::ratelimiting::DistBucketState;
 use crate::ratelimiting::DistBucketFactory;
@@ -27,10 +24,9 @@ impl<F: DistBucketFactory, G: GlobalStore> DistRateLimitStore<F, G> {
         }
     }
 
-    pub fn is_rate_limited(&self, key: &str, window: &TimeWindow, instance: &DateTime<Utc>) -> bool {
+    pub fn is_rate_limited(&self, key: &str, _window: &TimeWindow, instance: &DateTime<Utc>) -> bool {
         match self.buckets.get(key) {
             Some(ref bucket) => { 
-                let bucket_state = &bucket.bucket_state;
                 let rate_limit_strategy = &bucket.rate_limit_strategy;
                 bucket.bucket_state.is_rate_limited(instance.clone(), rate_limit_strategy) 
             },
@@ -67,32 +63,12 @@ impl<F: DistBucketFactory, G: GlobalStore> DistRateLimitStore<F, G> {
                 let key = update.key();
                 let increment = update.global_increment();
 
-                let current_state = self.global_store.increment(&key, increment).unwrap(); // TODO consume value
+                self.global_store.increment(&key, increment).unwrap(); // TODO consume value
 
                 let current_value = self.global_store.get(&key).unwrap();
 
                 dist_bucket.bucket_state.set_global_count(current_value);
             }
         }
-    }
-
-    fn global_increment(redis_uri: &str, update_state: &mut UpdateState) -> Result<u32, RedisError> {
-        let mut connection = Client::open(redis_uri)?;
-
-        let key = update_state.key();
-
-        let increment_command = redis::cmd("INCRBY")
-            .arg(&key)
-            .arg(&update_state.global_increment().to_string())
-            .query(&mut connection)?;
-
-
-        let result = redis::cmd("GET")
-            .arg(&key)
-            .query::<u32>(&mut connection);
-
-        println!("Incremented by {} and got total {:?}", update_state.global_increment(), result);
-
-        result
     }
 }

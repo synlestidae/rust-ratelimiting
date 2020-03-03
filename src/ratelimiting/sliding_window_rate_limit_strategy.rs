@@ -35,7 +35,7 @@ impl RateLimitStrategy for SlidingWindowRateLimitStrategy  {
         (current_value + slide_value).floor() as u32
     }
 
-    fn limit(&self, key: &str) -> u32 {
+    fn limit(&self, _key: &str) -> u32 {
         self.default_limit
     }
 }

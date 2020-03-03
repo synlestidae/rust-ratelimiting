@@ -19,7 +19,7 @@ impl GlobalStore for RedisStore {
     fn set(&self, key: &str, val: u32) -> Result<(), StoreError> {
         let mut client = Client::open(self.connection_info.clone())?;
 
-        let result = redis::cmd("SET")
+        redis::cmd("SET")
             .arg(key)
             .arg(&val.to_string())
             .query::<u32>(&mut client)?;
