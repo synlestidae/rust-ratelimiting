@@ -1,5 +1,6 @@
 use std::error::Error;
 
+#[derive(Debug)]
 pub struct StoreError {
     pub error: Box<dyn Error>
 }

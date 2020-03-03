@@ -1,9 +1,6 @@
 use crate::bucket::BucketState;
 use crate::periodic::UpdateState;
-use crate::periodic::UpdateValue;
-use crate::periodic::GlobalIncrement;
 use crate::periodic::UpdateTracker;
-use rand::Rng;
 
 pub struct PeriodicUpdateTracker {
     state: Option<UpdateState>,

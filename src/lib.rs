@@ -1,9 +1,12 @@
+#![deny(warnings)]
+
 extern crate redis;
 
-mod bucket;
-mod periodic;
-mod ratelimiting;
-mod store;
+pub mod bucket;
+pub mod periodic;
+pub mod ratelimiting;
+pub mod store;
+pub mod time;
+
 #[cfg(test)]
 mod tests;
-mod time;

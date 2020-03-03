@@ -1,9 +1,7 @@
 use chrono::DateTime;
-use chrono::Duration;
 use chrono::offset::Utc;
 use crate::bucket::BucketState;
 use crate::ratelimiting::RateLimitStrategy;
-use crate::time::TimeWindow;
 
 #[derive(Clone)]
 pub struct SlidingWindowRateLimitStrategy {

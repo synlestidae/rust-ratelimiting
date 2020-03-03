@@ -4,7 +4,6 @@ use chrono::offset::Utc;
 use crate::bucket::BucketState;
 use crate::ratelimiting::RateLimitStrategy;
 use crate::time::TimeWindow;
-use std::borrow::Borrow;
 
 #[derive(Clone)]
 pub struct RateLimitStore<S: RateLimitStrategy> {

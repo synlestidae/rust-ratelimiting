@@ -1,6 +1,4 @@
 use crate::time::TimeWindow;
-use std::time::Duration;
-use std::time::Instant;
 use crate::ratelimiting::RateLimitStrategy;
 use chrono::offset::Utc;
 use chrono::DateTime;

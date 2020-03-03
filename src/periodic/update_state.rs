@@ -29,10 +29,10 @@ impl UpdateState {
         }
     }
 
-    pub fn key(&self) -> Option<String> {
+    pub fn key(&self) -> String {
         match self.state.lock() {
-            Ok(state) => Some(state.key.to_owned()),
-            _ => None 
+            Ok(state) => state.key.clone(),
+            _ => unimplemented!()
         }
     }
 

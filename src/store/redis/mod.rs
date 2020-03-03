@@ -1,3 +1,3 @@
-mod redis_global_store;
+mod redis_store;
 
-pub use redis_global_store::RedisGlobalStore;
+pub use redis_store::RedisStore;
