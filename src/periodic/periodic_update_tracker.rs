@@ -2,6 +2,7 @@ use crate::bucket::BucketState;
 use crate::periodic::UpdateState;
 use crate::periodic::UpdateTracker;
 
+#[derive(Clone)]
 pub struct PeriodicUpdateTracker {
     state: Option<UpdateState>,
 }

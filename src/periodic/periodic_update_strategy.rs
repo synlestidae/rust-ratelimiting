@@ -1,6 +1,7 @@
 use crate::bucket::BucketState;
 use crate::periodic::UpdateStrategy;
 
+#[derive(Clone)]
 pub struct PeriodicUpdateStrategy {
     global_update_count: u32,
     desired_total_updates: u32,

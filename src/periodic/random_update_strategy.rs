@@ -2,6 +2,7 @@ use crate::periodic::UpdateStrategy;
 use crate::bucket::BucketState;
 use rand::prelude::*;
 
+#[derive(Clone)]
 pub struct RandomUpdateStrategy {
     rng: ThreadRng,
     next_update_at: u32,
