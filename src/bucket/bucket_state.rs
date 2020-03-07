@@ -35,7 +35,9 @@ impl BucketState {
 
     fn next(&self, window: &TimeWindow) -> Self {
         let previous_state = Box::new(if window.is_next(&self.window) {
-            Some(self.clone())
+            let mut previous = self.clone();
+            previous.previous_state = Box::new(None);
+            Some(previous)
         } else {
             None
         });
