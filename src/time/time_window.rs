@@ -3,6 +3,8 @@ use chrono::Duration;
 use chrono::DateTime;
 use chrono::offset::Utc;
 use chrono::NaiveDateTime;
+use chrono::Timelike;
+use chrono::Datelike;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeWindow {
@@ -48,5 +50,12 @@ impl TimeWindow {
         let window_milliseconds = f64::from(self.duration.num_milliseconds() as i32);
 
         instance_milliseconds / window_milliseconds
+    }
+
+    pub fn key(&self) -> String {
+        let date = self.start.date();
+        let time = self.start.time();
+
+        format!("{}-{}-{}-{}-{}-{}", date.year(), date.month(), date.day(), time.hour(), time.minute(), time.second())
     }
 }
