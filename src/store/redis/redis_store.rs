@@ -3,6 +3,7 @@ use redis::ConnectionInfo;
 use crate::store::StoreError;
 use crate::store::GlobalStore;
 
+#[derive(Clone)]
 pub struct RedisStore {
     connection_info: ConnectionInfo
 }

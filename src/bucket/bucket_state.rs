@@ -75,6 +75,7 @@ impl BucketState {
     pub fn clear_local_count(&mut self) -> u32 {
         let count = self.local_count;
         self.global_count += count;
+        self.local_count = 0;
 
         return count;
     }

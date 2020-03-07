@@ -35,16 +35,18 @@ impl<F: DistBucketFactory, G: GlobalStore> DistRateLimitStore<F, G> {
         }
     }
 
-    pub fn increment(&mut self, key: &str, window: &TimeWindow, change: u32) {
+    pub fn increment(&self, key: &str, window: &TimeWindow, change: u32) {
         let key_copy = key.to_owned();
         let window_copy = window.to_owned();
-        //let limit = self.rate_limit_strategy.limit(key);
-        // exclusive zone begins here
         let mut factory = self.dist_bucket_factory.clone();
 
         self.buckets.upsert(key.to_owned(), 
-            move || factory.make(&key_copy, &window_copy),
-            |bucket| { bucket.bucket_state.increment(change, window); } 
+            move || {
+                factory.make(&key_copy, &window_copy)
+            },
+            |bucket| { 
+                bucket.bucket_state.increment(change, window); 
+            } 
         );
 
         if let Some(ref mut dist_bucket_write_guard) = self.buckets.get_mut(key) {

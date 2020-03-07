@@ -13,7 +13,6 @@ pub struct RandomUpdateStrategy {
 impl UpdateStrategy for RandomUpdateStrategy {
     fn from(bucket: &BucketState) -> Self {
         let mut rng = thread_rng();
-        println!("From {:?}", bucket);
         let next_update_at = next_update_at(&mut rng, bucket.get_count(), bucket.limit);
 
         Self {
@@ -39,7 +38,6 @@ impl UpdateStrategy for RandomUpdateStrategy {
 
         if needs_update {
             self.next_update_at = next_update_at(&mut self.rng, bucket_state.get_count(), bucket_state.limit);
-            println!("Next update at {} for {} of {}", self.next_update_at, bucket_state.get_count(), bucket_state.limit);
         }
 
         needs_update
@@ -47,7 +45,6 @@ impl UpdateStrategy for RandomUpdateStrategy {
 }
 
 fn next_update_at(tr: &mut ThreadRng, start: u32, limit: u32) -> u32 {
-    println!("gen_range {}, {}", start, start + (limit / DEFAULT_DESIRED_TOTAL_UPDATES));
     tr.gen_range(start, start + (limit / DEFAULT_DESIRED_TOTAL_UPDATES))
 }
 
