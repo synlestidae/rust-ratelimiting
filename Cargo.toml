@@ -1,6 +1,6 @@
 [package]
 name = "ratelimiting"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Maté Antunovic <Mate_Antunovic@bnz.co.nz>"]
 edition = "2018"
 
@@ -10,3 +10,4 @@ edition = "2018"
 chashmap = "2.2.2"
 chrono = "0.4.1"
 redis = "0.15.1"
+rand = "0.7.3"

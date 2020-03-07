@@ -19,12 +19,10 @@ impl TimeWindow {
     }
 
     pub fn from(instance: DateTime<Utc>, duration: Duration) -> Self {
-        const NANOSECONDS_IN_MILLISECOND: i64 = 1000000;
         // convert to millis
         let instance_millis = instance.timestamp_millis();
         let duration_millis = duration.num_milliseconds();
         let window_millis = instance_millis - (instance_millis % duration_millis);
-        let window_nanosecond_part = window_millis % (1000 * 1000);
         let start = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(window_millis / 1000, 0), Utc);
 
         Self {

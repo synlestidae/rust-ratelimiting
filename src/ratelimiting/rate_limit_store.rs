@@ -1,10 +1,9 @@
 use chashmap::CHashMap;
-use crate::bucket_state::BucketState;
-use crate::time_window::TimeWindow;
-use std::borrow::Borrow;
-use crate::rate_limit_strategy::RateLimitStrategy;
 use chrono::DateTime;
 use chrono::offset::Utc;
+use crate::bucket::BucketState;
+use crate::ratelimiting::RateLimitStrategy;
+use crate::time::TimeWindow;
 
 #[derive(Clone)]
 pub struct RateLimitStore<S: RateLimitStrategy> {
@@ -20,7 +19,7 @@ impl<S: RateLimitStrategy> RateLimitStore<S> {
         }
     }
 
-    pub fn is_rate_limited(&self, key: &str, window: &TimeWindow, instance: &DateTime<Utc>) -> bool {
+    pub fn is_rate_limited(&self, key: &str, _window: &TimeWindow, instance: &DateTime<Utc>) -> bool {
         match self.buckets.get(key) {
             Some(ref bucket) => bucket.is_rate_limited(instance.clone(), &self.rate_limit_strategy),
             None => false

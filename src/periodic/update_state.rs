@@ -2,7 +2,7 @@ use std::sync::Mutex;
 use std::sync::Arc;
 use std::ops::Drop;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct UpdateState {
     state: Arc<Mutex<InnerState>>
 }
@@ -29,10 +29,10 @@ impl UpdateState {
         }
     }
 
-    pub fn key(&self) -> Option<String> {
+    pub fn key(&self) -> String {
         match self.state.lock() {
-            Ok(state) => Some(state.key.to_owned()),
-            _ => None 
+            Ok(state) => state.key.clone(),
+            _ => unimplemented!()
         }
     }
 
@@ -77,6 +77,7 @@ impl Drop for UpdateState {
     }
 }
 
+#[derive(Clone, Debug)]
 struct InnerState {
     global_increment: u32,
     key: String,

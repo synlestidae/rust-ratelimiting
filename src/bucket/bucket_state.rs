@@ -1,7 +1,5 @@
-use crate::time_window::TimeWindow;
-use std::time::Duration;
-use std::time::Instant;
-use crate::rate_limit_strategy::RateLimitStrategy;
+use crate::time::TimeWindow;
+use crate::ratelimiting::RateLimitStrategy;
 use chrono::offset::Utc;
 use chrono::DateTime;
 
@@ -82,7 +80,9 @@ impl BucketState {
     }
 
     pub fn set_global_count(&mut self, global_count: u32) {
-        self.global_count = global_count;
+        if global_count > self.global_count {
+            self.global_count = global_count;
+        }
     }
 
     pub fn is_rate_limited<S: RateLimitStrategy>(&self, instance: DateTime<Utc>, strat: &S) -> bool {
