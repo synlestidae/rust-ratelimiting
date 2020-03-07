@@ -56,6 +56,6 @@ impl TimeWindow {
         let date = self.start.date();
         let time = self.start.time();
 
-        format!("{}-{}-{}-{}-{}-{}", date.year(), date.month(), date.day(), time.hour(), time.minute(), time.second())
+        format!("{:02}-{:02}-{:02}-{:02}-{:02}-{:02}", date.year(), date.month(), date.day(), time.hour(), time.minute(), time.second())
     }
 }
