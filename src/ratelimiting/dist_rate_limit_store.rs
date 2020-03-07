@@ -9,6 +9,7 @@ use crate::ratelimiting::DistBucketState;
 use crate::ratelimiting::DistBucketFactory;
 use std::ops::DerefMut;
 
+#[derive(Clone)]
 pub struct DistRateLimitStore<F: DistBucketFactory, G: GlobalStore> {
     dist_bucket_factory: F,
     buckets: CHashMap<String, DistBucketState<F::R, F::T, F::S>>,

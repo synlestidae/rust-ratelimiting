@@ -5,6 +5,7 @@ use crate::ratelimiting::RateLimitStrategy;
 use crate::bucket::BucketState;
 use crate::periodic::UpdateState;
 
+#[derive(Clone)]
 pub struct DistBucketState<R: RateLimitStrategy, U: UpdateTracker, S: UpdateStrategy> {
     pub bucket_state: BucketState,
     pub update_tracker: U,
